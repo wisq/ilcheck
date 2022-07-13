@@ -58,6 +58,7 @@ defmodule ILCheck.Item.Location do
   defp describe_retainer(r, :market, nil, _), do: "#{r}'s market board"
 
   @char Application.get_env(:ilcheck, :character_name)
+  if is_nil(@char), do: raise("You must specify a character name in `config/config.exs`.")
 
   @armory [
     weapon: "Main",
@@ -114,6 +115,10 @@ defmodule ILCheck.Item.Location do
       %Location{type: :armory, page: unquote(key), slot: String.to_integer(slot)}
     end
   end)
+
+  def parse(char, location) do
+    raise "Not sure where this item is: Character #{inspect(char)}, location #{inspect(location)}.  Do you have the wrong character name in `config/config.exs`?"
+  end
 
   defp page_sort_key(:bag, page) when is_integer(page), do: page
   defp page_sort_key(:equipment, nil), do: nil

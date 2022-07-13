@@ -3,7 +3,7 @@ defmodule ILCheck do
   require Logger
 
   def classes do
-    Application.get_env(:ilcheck, :classes)
+    Application.get_env(:ilcheck, :classes, [])
     |> classes()
   end
 
