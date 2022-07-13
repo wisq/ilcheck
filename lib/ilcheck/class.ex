@@ -6,6 +6,18 @@ defmodule ILCheck.Class do
     retainer: false
   )
 
+  alias __MODULE__
+
+  def from_config(key, level) when is_integer(level) do
+    %Class{key: key, level: level}
+  end
+
+  def from_config(key, %{level: _} = data) do
+    data
+    |> Map.put(:key, key)
+    |> then(&struct!(Class, &1))
+  end
+
   @classes [
     ACN: "Arcanist",
     ALC: "Alchemist",
