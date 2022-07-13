@@ -24,3 +24,6 @@ ilcheck-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# Users should copy config from example.
+config/config.exs
