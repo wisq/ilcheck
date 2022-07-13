@@ -14,27 +14,65 @@ defmodule ILCheck.Item.Location do
 
   def is_equipment(%Location{type: :equipment, retainer: nil}), do: true
   def is_equipment(%Location{type: :armory, retainer: nil}), do: true
+  # Saddlebag contains overflow for armory:
+  def is_equipment(%Location{type: :saddlebag}), do: true
   def is_equipment(%Location{}), do: false
 
-  def is_inventory(%Location{type: :inventory, retainer: nil}), do: true
-  def is_inventory(%Location{type: :saddlebag}), do: true
+  def is_inventory(%Location{type: :bag, retainer: nil}), do: true
   def is_inventory(%Location{}), do: false
+
+  @doc """
+  Sort locations: Retainer first, then equipment, then inventory, then other.
+
+  This assists `ILCheck.Item.sort_best_to_worst` in sorting items.  We need
+  this because you may have identical items (e.g. rings) that would otherwise
+  confuse the planner into swapping items around needlessly.
+
+  The sort key will also include the type, page, and slot.  As each slot should
+  only have one item, this means item sort orders that include a location sort
+  key should always be deterministic.
+  """
+  def sort_key(%Location{type: type, page: page, slot: slot} = loc) do
+    uniq = {type, page_sort_key(type, page), slot}
+
+    cond do
+      !is_nil(loc.retainer) && loc.type != :market -> {1, uniq}
+      is_equipment(loc) -> {2, uniq}
+      is_inventory(loc) -> {3, uniq}
+      loc.type in [:glamour, :armoire, :market] -> {4, uniq}
+      loc -> raise "Not sure how to sort location: #{inspect(loc)}"
+    end
+  end
+
+  def describe(%Location{retainer: nil} = l), do: describe_player(l.type, l.page, l.slot)
+  def describe(%Location{retainer: r} = l), do: describe_retainer(r, l.type, l.page, l.slot)
+
+  defp describe_player(:bag, page, slot), do: "inventory (#{page} / #{slot})"
+  defp describe_player(:armory, type, slot), do: "armory (#{type} / #{slot})"
+  defp describe_player(:equipment, nil, _), do: "equipment"
+  defp describe_player(:saddlebag, side, slot), do: "saddlebag (#{side} / #{slot})"
+  defp describe_player(:glamour, nil, nil), do: "glamour dresser"
+  defp describe_player(:armoire, type, slot), do: "armoire (#{type} / #{slot})"
+
+  defp describe_retainer(r, :equipment, nil, _), do: "#{r}'s equipment"
+  defp describe_retainer(r, :market, nil, _), do: "#{r}'s market board"
 
   @char Application.get_env(:ilcheck, :character_name)
 
-  @armory %{
-    "Main" => :weapon,
-    "Offhand" => :offhand,
-    "Head" => :head,
-    "Body" => :body,
-    "Hand" => :hands,
-    "Legs" => :legs,
-    "Feet" => :feet,
-    "Ear" => :earring,
-    "Wrist" => :bracelet,
-    "Neck" => :necklace,
-    "Ring" => :ring
-  }
+  @armory [
+    weapon: "Main",
+    offhand: "Offhand",
+    head: "Head",
+    body: "Body",
+    hands: "Hand",
+    legs: "Legs",
+    feet: "Feet",
+    earring: "Ear",
+    bracelet: "Wrist",
+    necklace: "Neck",
+    ring: "Ring",
+    soul: "Soul Crystal"
+  ]
 
   def parse(@char, "Bag " <> rest) do
     [page, slot] = String.split(rest, " - ") |> Enum.map(&String.to_integer/1)
@@ -53,6 +91,11 @@ defmodule ILCheck.Item.Location do
     %Location{type: :glamour, slot: nil}
   end
 
+  def parse(@char, "Armoire - " <> rest) do
+    [type, slot] = String.split(rest, " - ")
+    %Location{type: :armoire, page: type, slot: String.to_integer(slot)}
+  end
+
   def parse(@char, "Equipped Gear - " <> slot) do
     %Location{type: :equipment, slot: String.to_integer(slot)}
   end
@@ -66,9 +109,21 @@ defmodule ILCheck.Item.Location do
   end
 
   @armory
-  |> Enum.each(fn {name, key} ->
+  |> Enum.each(fn {key, name} ->
     def parse(@char, "Armory - #{unquote(name)} - " <> slot) do
       %Location{type: :armory, page: unquote(key), slot: String.to_integer(slot)}
     end
+  end)
+
+  defp page_sort_key(:bag, page) when is_integer(page), do: page
+  defp page_sort_key(:equipment, nil), do: nil
+  defp page_sort_key(:market, nil), do: nil
+  defp page_sort_key(:saddlebag, :left), do: 1
+  defp page_sort_key(:saddlebag, :right), do: 2
+
+  @armory
+  |> Enum.with_index()
+  |> Enum.each(fn {{key, _}, index} ->
+    defp page_sort_key(:armory, unquote(key)), do: unquote(index)
   end)
 end
