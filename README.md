@@ -12,6 +12,19 @@ You may find it useful as a general cleanup tool, since it will (hopefully) iden
 
 … Or maybe it'll get super confused by your inventory, and it'll tell you to do a bunch of silly things, and you won't find it useful at all.  No idea!  I'm just putting this out there, because why not.
 
+## How it works
+
+Essentially, there are four places your equipment can be:
+
+ * Equipped to your retainer
+ * In your **current** equipment — either on your character right now, or in your armoury chest
+ * In your **future** equipment — same as above, plus the chocobo saddlebag, where you can store equipment you're not using yet (if your armoury is full)
+ * In your inventory — also considered the "discard" pile
+
+When run, the planner will go through your items, in best-to-worst order, and start assigning them to those categories.  Your best items will go to your retainer (if configured), then to your current/future equipment (depending on whether you can equip it yet or not).
+
+For any given piece of gear, we check if we've already seen gear in the same slot with the same equip level (or lower).  Since we're going through the items best-to-worst, we know that if we've seen **any** matching gear so far, then this gear must be worse and we can throw it out.  For example, we might see a Cryptlurker Sickle (level 80, iLvl 530), and then a Monstrorum Sickle (level 81, iLvl 520) — in this case, we can throw out the Monstrorum Sickle, because a level 81 character could just equip the Cryptlurker.  (The only exception is rings, where we need to have seen **two** rings at any given level before we start throwing worse ones out.)
+
 ## Usage
 
 To use this tool, you need to be running the "Inventory Tools" plugin.  You'll export a CSV file containing the relevant gear, and then this program will parse that CSV.
@@ -53,6 +66,30 @@ To use this tool, you need to be running the "Inventory Tools" plugin.  You'll e
     * What's the difference?  If you have e.g. a BLM at 75 and an RDM at 0, ILCheck will suggest you hold on to your best 1 to 75 gear for your future RDM.  If you omit RDM entirely, it'll just find the best gear for your BLM and then suggest you throw out all your <75 caster gear.
 3. Run `mix ilcheck.plan <path to CSV>`.
 4. Perform the actions it suggests.  (Or don't, up to you.  But it'll keep nagging you each time you run it.)
+
+To "discard" an item, just move it to your inventory — you don't have to get rid of it right away.
+
+Note that the planner *will continue looking* at your inventory (even if it's also the "discard" pile).  So once you acquire new gear, you can perform another export, and then run this again.
+
+If it tells you to move the gear to your armoury — great, you've found new & better gear.  If it tells you "nothing to do", then nothing in your inventory is better than what you've already got, and you should be able to safely get rid of all the gear in your inventory.
+
+## Quirks
+
+### Retainer gear
+
+**If a retainer is configured, we always reserve the absolute best gear for them.**
+
+I give my retainers the best gear so they can bring me the best gear, and so any unique gear they're wearing doesn't prevent me from getting that unique gear for myself.
+
+If your retainer's level is lower than your best gear, this **will** be a problem.  It'll suggest you equip gear that they can't equip, and also take off the gear they're already wearing.  This isn't quick or easy to fix, and it's moot for me, since mine are level 90 now.  (Maybe I'll fix it on the next level expansion.)
+
+### Saddlebags
+
+**The chocobo saddlebag is considered overflow for the armoury chest.**  My weapon bag got full, so I needed somewhere to store future weapons.
+
+If your saddlebag contains equipment that should be equipped to a class right now (e.g. you've been keeping an 82 WAR weapon in here and your WAR just turned 82), it'll tell you to move them to the armoury chest.
+
+If you have **future** equipment in here, it'll leave them alone.  If there's junk equipment, it'll tell you to discard them, i.e. move them to your inventory.
 
 ## Disclaimers
 
