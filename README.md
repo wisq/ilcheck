@@ -2,6 +2,16 @@
 
 Manages your FFXIV inventory.  Identifies items that you've outgrown, or future gear that is worse than other future gear at the same level.
 
+## Why?
+
+I've been really good at levelling up all my classes (everything except BLU is in the 70-90 range), but really bad at doing MSQ, so I don't have access to 80 or 90 poetics gear yet.  My retainers have been bringing me gear all the way up to level 90, which is great, but there's a big mishmash of item levels in the 80-90 range, and it can be tricky to keep track of which items are better than others.
+
+As such, I wrote this to manage my gear for me.  I provide it with a CSV export of my relevant gear, and it lets me know which items I should consider putting into my armoury, versus which ones I should throw away.  (It also reserves the best gear for my retainers, because having better gear helps them bring back better gear.)
+
+You may find it useful as a general cleanup tool, since it will (hopefully) identify items that are worse than other items in your armoury, or that all your classes have outgrown.
+
+… Or maybe it'll get super confused by your inventory, and it'll tell you to do a bunch of silly things, and you won't find it useful at all.  No idea!  I'm just putting this out there, because why not.
+
 ## Usage
 
 To use this tool, you need to be running the "Inventory Tools" plugin.  You'll export a CSV file containing the relevant gear, and then this program will parse that CSV.
