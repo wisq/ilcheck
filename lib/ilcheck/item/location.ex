@@ -14,15 +14,16 @@ defmodule ILCheck.Item.Location do
 
   def is_equipment(%Location{type: :equipment, retainer: nil}), do: true
   def is_equipment(%Location{type: :armory, retainer: nil}), do: true
-  # Saddlebag contains overflow for armory:
-  def is_equipment(%Location{type: :saddlebag}), do: true
   def is_equipment(%Location{}), do: false
+
+  def is_saddlebag(%Location{type: :saddlebag}), do: true
+  def is_saddlebag(%Location{}), do: false
 
   def is_inventory(%Location{type: :bag, retainer: nil}), do: true
   def is_inventory(%Location{}), do: false
 
   @doc """
-  Sort locations: Retainer first, then equipment, then inventory, then other.
+  Sort locations: Retainer, equipment, saddlebag, inventory, other.
 
   This assists `ILCheck.Item.sort_best_to_worst` in sorting items.  We need
   this because you may have identical items (e.g. rings) that would otherwise
@@ -38,8 +39,9 @@ defmodule ILCheck.Item.Location do
     cond do
       !is_nil(loc.retainer) && loc.type != :market -> {1, uniq}
       is_equipment(loc) -> {2, uniq}
-      is_inventory(loc) -> {3, uniq}
-      loc.type in [:glamour, :armoire, :market] -> {4, uniq}
+      is_saddlebag(loc) -> {3, uniq}
+      is_inventory(loc) -> {4, uniq}
+      loc.type in [:glamour, :armoire, :market] -> {5, uniq}
       loc -> raise "Not sure how to sort location: #{inspect(loc)}"
     end
   end

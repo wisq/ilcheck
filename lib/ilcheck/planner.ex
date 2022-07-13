@@ -26,11 +26,11 @@ defmodule ILCheck.Planner do
       |> Enum.count(&(&1 <= level))
     end
 
-    def accept_item(plan, item) do
+    def accept_item(plan, item, timeframe) do
       plan
       |> add_to_items(:items_used, item)
       |> add_to_levels(item.category, item.level)
-      |> move_item(item, :equipment)
+      |> move_item(item, :equipment, timeframe)
     end
 
     def reserve_item(plan, item, retainer) do
@@ -45,9 +45,17 @@ defmodule ILCheck.Planner do
       |> add_to_items(:items_rejected, item)
     end
 
-    def skip_used_item(plan, item) do
+    def skip_used_item(plan, item, :future) do
       plan
       |> add_to_levels(item.category, item.level)
+    end
+
+    def skip_used_item(plan, item, :current) do
+      plan
+      |> add_to_levels(item.category, item.level)
+      # If an item was `:future` for a previous class,
+      # but is `:current` for this one, this forces a move.
+      |> move_item(item, :equipment, :current)
     end
 
     def skip_reserved_item(plan, item) do
@@ -76,8 +84,8 @@ defmodule ILCheck.Planner do
       %Plan{plan | reserved_counts: rc}
     end
 
-    def move_item(plan, %Item{location: source} = item, target) do
-      if !is_location(source, target) do
+    def move_item(plan, %Item{location: source} = item, target, timeframe \\ nil) do
+      if !is_location(source, target, timeframe) do
         %Plan{plan | actions: map_put!(plan.actions, item, target)}
       else
         plan
@@ -90,9 +98,13 @@ defmodule ILCheck.Planner do
       end)
     end
 
-    defp is_location(loc, {:retainer, r}), do: Location.is_retainer_equipment(loc, r)
-    defp is_location(loc, :equipment), do: Location.is_equipment(loc)
-    defp is_location(loc, :garbage), do: Location.is_inventory(loc)
+    defp is_location(loc, {:retainer, r}, _), do: Location.is_retainer_equipment(loc, r)
+    defp is_location(loc, :garbage, _), do: Location.is_inventory(loc)
+
+    defp is_location(loc, :equipment, :current), do: Location.is_equipment(loc)
+
+    defp is_location(loc, :equipment, :future),
+      do: Location.is_equipment(loc) || Location.is_saddlebag(loc)
   end
 
   alias ILCheck.{Class, Item, Item.Location}
@@ -137,6 +149,7 @@ defmodule ILCheck.Planner do
     cls = Class.name(class.key)
     wanted = want_count_for_category(item.category)
     reserved = if class.retainer, do: Plan.reserved_count(plan, item.category), else: 999
+    timeframe = if item.level <= class.level, do: :current, else: :future
 
     cond do
       item in plan.items_reserved ->
@@ -145,7 +158,7 @@ defmodule ILCheck.Planner do
 
       item in plan.items_used ->
         Logger.debug("#{cls}: Skipping #{describe(item)} -- already used in previous plan.")
-        Plan.skip_used_item(plan, item)
+        Plan.skip_used_item(plan, item, timeframe)
 
       reserved < wanted ->
         Logger.debug("#{cls}: Reserving #{describe(item)} for #{class.retainer}.")
@@ -160,8 +173,8 @@ defmodule ILCheck.Planner do
         Plan.reject_item(plan, item)
 
       true ->
-        Logger.debug("#{cls}: Accepting #{describe(item)} into equipment.")
-        Plan.accept_item(plan, item)
+        Logger.debug("#{cls}: Accepting #{describe(item)} into #{timeframe} equipment.")
+        Plan.accept_item(plan, item, timeframe)
     end
   end
 
