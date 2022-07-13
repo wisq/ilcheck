@@ -91,6 +91,12 @@ If your saddlebag contains equipment that should be equipped to a class right no
 
 If you have **future** equipment in here, it'll leave them alone.  If there's junk equipment, it'll tell you to discard them, i.e. move them to your inventory.
 
+### Limited jobs
+
+**There's currently no code to handle the Blue Mage level limitation.**  In theory, it ought to ignore BLU gear over 70, unless you're playing the _really long game_ and waiting for a BLU level expansion.
+
+In practice, since I already only use this to manage my 71+ gear, it's kinda moot for me. Personally, I just don't put BLU in my `config.exs`, so it doesn't reserve any caster gear below my lowest caster class.
+
 ## Disclaimers
 
 This program is heavily tuned for my own use case.  I'm releasing it because I've had some requests to do so, and I figure it might be useful to someone.
