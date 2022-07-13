@@ -1,18 +1,9 @@
-defmodule Ilcheck do
-  @moduledoc """
-  Documentation for `Ilcheck`.
-  """
+defmodule ILCheck do
+  alias ILCheck.Item
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Ilcheck.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  def parse(csv) do
+    csv
+    |> CSV.decode!(headers: true)
+    |> Enum.map(&Item.parse/1)
   end
 end
