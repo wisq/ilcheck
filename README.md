@@ -59,8 +59,8 @@ To use this tool, you need to be running the "Inventory Tools" plugin.  You'll e
 1. Run `mix deps.get` to fetch dependencies.
 2. Copy `config/example.exs` to `config/config.exs` and edit it:
   * Fill in your character's in-game name.
-  * If you want to reserve items for retainers, move those classes to the top and fill in their levels and retainer names.
   * Fill in the rest of your levels.
+    * If you have a retainer of this class and want to reserve gear for it, put in its name.
     * If you don't have a class yet, put in its level as 0.
     * If you don't care about a class whatsoever, you can just delete it.
     * What's the difference?  If you have e.g. a BLM at 75 and an RDM at 0, ILCheck will suggest you hold on to your best 1 to 75 gear for your future RDM.  If you omit RDM entirely, it'll just find the best gear for your BLM and then suggest you throw out all your <75 caster gear.

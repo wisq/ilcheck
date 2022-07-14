@@ -11,12 +11,9 @@ config :ilcheck,
   # or in short form:
   #   WAR: 90,
   classes: [
-    # Classes with retainers should always come first:
-    WAR: %{level: 90, retainer: "Retainer1Name"},
-    MCH: %{level: 90, retainer: "Retainer2Name"},
     # Tanks:
     PLD: 11,
-    # WAR is above
+    WAR: %{level: 90, retainer: "Retainer1Name"},
     DRK: 22,
     GNB: 33,
     # Healers:
@@ -32,7 +29,7 @@ config :ilcheck,
     RPR: 78,
     # Ranged DPS:
     BRD: 90,
-    # MCH is above
+    MCH: %{level: 90, retainer: "Retainer2Name"},
     DNC: 87,
     # Magical DPS:
     BLM: 65,

@@ -111,16 +111,21 @@ defmodule ILCheck.Planner do
   alias ILCheck.{Class, Item, Item.Location}
 
   def plan_all(classes, items) when is_list(classes) do
+    reserve_plan =
+      classes
+      |> Enum.filter(&(!is_nil(&1.retainer)))
+      |> Enum.reduce(%Plan{}, &plan(&1, items, &2, :reserve_only))
+
     classes
-    |> Enum.reduce(%Plan{}, &plan(&1, items, &2))
+    |> Enum.reduce(reserve_plan, &plan(&1, items, &2))
   end
 
-  def plan(%Class{} = class, items, plan \\ %Plan{}) when is_list(items) do
+  def plan(%Class{} = class, items, plan \\ %Plan{}, mode \\ nil) when is_list(items) do
     items
     |> Enum.reject(&ignore_equip?(&1, class))
     |> Enum.filter(&Item.usable_by_class(class, &1))
     |> Item.sort_best_to_worst(class.retainer)
-    |> Enum.reduce(Plan.restart(plan), &plan_for_item(class, &1, &2))
+    |> Enum.reduce(Plan.restart(plan), &plan_for_item(class, &1, &2, mode))
   end
 
   def tidy(%Plan{} = plan) do
@@ -146,7 +151,7 @@ defmodule ILCheck.Planner do
   defp want_count_for_category(:ring), do: 2
   defp want_count_for_category(_), do: 1
 
-  defp plan_for_item(class, item, plan) do
+  defp plan_for_item(class, item, plan, mode) do
     cls = Class.name(class.key)
     wanted = want_count_for_category(item.category)
     reserved = if class.retainer, do: Plan.reserved_count(plan, item.category), else: 999
@@ -164,6 +169,11 @@ defmodule ILCheck.Planner do
       reserved < wanted ->
         Logger.debug("#{cls}: Reserving #{describe(item)} for #{class.retainer}.")
         Plan.reserve_item(plan, item, class.retainer)
+
+      mode == :reserve_only ->
+        # We're in our initial reserve-only pass, and the retainer has enough gear
+        # in this category, so completely skip the item for now.
+        plan
 
       Plan.usable_count_by_level(plan, item.category, class.level) >= wanted ->
         Logger.debug("#{cls}: Rejecting #{describe(item)} -- obsolete.")
