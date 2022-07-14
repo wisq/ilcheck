@@ -32,11 +32,14 @@ defmodule ILCheck.Item.Location do
   The sort key will also include the type, page, and slot.  As each slot should
   only have one item, this means item sort orders that include a location sort
   key should always be deterministic.
+
+  If a specific retainer is specified, we will sort their gear first.
   """
-  def sort_key(%Location{type: type, page: page, slot: slot} = loc) do
+  def sort_key(%Location{type: type, page: page, slot: slot} = loc, retainer \\ nil) do
     uniq = {type, page_sort_key(type, page), slot}
 
     cond do
+      !is_nil(retainer) && loc.retainer == retainer -> {0, uniq}
       !is_nil(loc.retainer) && loc.type != :market -> {1, uniq}
       is_equipment(loc) -> {2, uniq}
       is_saddlebag(loc) -> {3, uniq}

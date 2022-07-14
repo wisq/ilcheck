@@ -119,7 +119,7 @@ defmodule ILCheck.Planner do
     items
     |> Enum.reject(&ignore_equip?(&1, class))
     |> Enum.filter(&Item.usable_by_class(class, &1))
-    |> Item.sort_best_to_worst()
+    |> Item.sort_best_to_worst(class.retainer)
     |> Enum.reduce(Plan.restart(plan), &plan_for_item(class, &1, &2))
   end
 

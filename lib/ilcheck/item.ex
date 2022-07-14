@@ -37,16 +37,15 @@ defmodule ILCheck.Item do
   Imperial item, since it gives the same bonuses but can be equipped sooner
   (and we don't need to clutter our inventory with an extra item).
 
-  As a final tie-breaker, we sort items on their location.  See
-  `ILCheck.Location.sort_key/1` for details.
+  As a final tie-breaker, we sort items on their location.  We prefer items that are already on the given retainer, so that retainers with similar gear don't needlessly swap their gear around.  See `ILCheck.Location.sort_key/1` for details.
   """
-  def sort_best_to_worst(items) do
+  def sort_best_to_worst(items, retainer) do
     items
-    |> Enum.sort_by(&sort_key/1)
+    |> Enum.sort_by(&sort_key(&1, retainer))
   end
 
-  defp sort_key(%Item{level: level, location: loc} = item) do
-    {-effective_ilvl(item), level, Location.sort_key(loc)}
+  defp sort_key(%Item{level: level, location: loc} = item, retainer) do
+    {-effective_ilvl(item), level, Location.sort_key(loc, retainer)}
   end
 
   #
