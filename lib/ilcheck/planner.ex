@@ -92,9 +92,10 @@ defmodule ILCheck.Planner do
       end
     end
 
-    defp map_put!(map, key, value) do
-      Map.update(map, key, value, fn old ->
-        raise "Cannot update #{inspect(key)} to #{inspect(value)}, has value #{inspect(old)}"
+    defp map_put!(map, key, new) do
+      Map.update(map, key, new, fn
+        ^new -> new
+        old -> raise "Cannot update #{inspect(key)} to #{inspect(new)}, has value #{inspect(old)}"
       end)
     end
 
