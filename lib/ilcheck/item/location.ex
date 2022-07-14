@@ -71,8 +71,8 @@ defmodule ILCheck.Item.Location do
     legs: "Legs",
     feet: "Feet",
     earring: "Ear",
-    bracelet: "Wrist",
     necklace: "Neck",
+    bracelet: "Wrist",
     ring: "Ring",
     soul: "Soul Crystal"
   ]
