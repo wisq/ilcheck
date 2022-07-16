@@ -61,6 +61,7 @@ defmodule ILCheck.Item.Location do
 
   defp describe_retainer(r, :equipment, nil, _), do: "#{r}'s equipment"
   defp describe_retainer(r, :market, nil, _), do: "#{r}'s market board"
+  defp describe_retainer(r, :bag, page, slot), do: "#{r}'s inventory (#{page} / #{slot})"
 
   @char Application.get_env(:ilcheck, :character_name)
   if is_nil(@char), do: raise("You must specify a character name in `config/config.exs`.")
@@ -83,6 +84,11 @@ defmodule ILCheck.Item.Location do
   def parse(@char, "Bag " <> rest) do
     [page, slot] = String.split(rest, " - ") |> Enum.map(&String.to_integer/1)
     %Location{type: :bag, page: page, slot: slot}
+  end
+
+  def parse(retainer, "Bag " <> rest) do
+    [page, slot] = String.split(rest, " - ") |> Enum.map(&String.to_integer/1)
+    %Location{type: :bag, retainer: retainer, page: page, slot: slot}
   end
 
   def parse(@char, "Saddlebag Left - " <> slot) do
